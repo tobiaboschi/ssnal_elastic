@@ -6,7 +6,7 @@ This repository contains an efficient python implementation of a SsNAL method to
 
 FILES DESCRIPTION: 
   
-  ssnal_elastic_core.py:
+    ssnal_elastic_core.py:
       function to run the SsNAL-EN algorithm for one fixed value of c_lam
 
     ssnal_elastic_tune.py:
