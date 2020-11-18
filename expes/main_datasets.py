@@ -6,18 +6,16 @@
 # ------------------- #
 
 
-
 import numpy as np
-from ssnal_elastic_path import ssnal_elastic_path
-from ssnal_elastic_core import ssnal_elastic_core
 import time
 from sklearn.preprocessing import PolynomialFeatures
 from scipy.linalg import eigh as largest_eigh
 from numpy import linalg as LA
 
 
-if __name__ == '__main__':
+from ssnal import ssnal_elastic_path, ssnal_elastic_core
 
+if __name__ == '__main__':
 
     # ----------------------------------------------------- #
     #  choose datasets to analyze and polynomial expansion  #
@@ -72,12 +70,14 @@ if __name__ == '__main__':
         A, b = datasets.load_boston(return_X_y=True)
 
     if bodyfat:
-        data = np.genfromtxt('./toy_data/bodyfat.csv', delimiter=',', skip_header=True)
+        data = np.genfromtxt('./toy_data/bodyfat.csv',
+                             delimiter=',', skip_header=True)
         A = np.column_stack((data[:, 0], data[:, 2:]))
         b = data[:, 1]
 
     if traizines:
-        data = np.genfromtxt('./toy_data/traizines.csv', delimiter=',', skip_header=True)
+        data = np.genfromtxt('./toy_data/traizines.csv',
+                             delimiter=',', skip_header=True)
         A = data[:, 1:]
         b = data[:, 0]
 
@@ -89,7 +89,8 @@ if __name__ == '__main__':
 
     print('')
     print('  * dim A =', A.shape)
-    print('  * max_lam(AAt) = %.4e' % largest_eigh(np.dot(A, A.transpose()), eigvals=(m - 1, m - 1))[0][0])
+    print('  * max_lam(AAt) = %.4e' %
+          largest_eigh(np.dot(A, A.transpose()), eigvals=(m - 1, m - 1))[0][0])
     print('')
 
     # find lam1_max, and determine lam1 and lam2
@@ -98,7 +99,6 @@ if __name__ == '__main__':
     lam1 = alpha * c_lam * lam1_max
     lam2 = (1 - alpha) * c_lam * lam1_max
 
-    
     # -------------------- #
     #  ssnal_elastic_core  #
     # -------------------- #
@@ -114,8 +114,3 @@ if __name__ == '__main__':
                                   maxiter_ssn=maxiter_ssn, maxiter_ssnal=maxiter_ssnal,
                                   use_cg=use_cg, r_exact=r_exact,
                                   print_lev=print_lev)
-
-
-
-
-   

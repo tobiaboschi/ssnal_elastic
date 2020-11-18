@@ -12,7 +12,8 @@ import numpy as np
 from numpy import linalg as LA
 import scipy.sparse.linalg as s_LA
 from sklearn.linear_model import LinearRegression
-import auxiliary_functions as AF
+
+import ssnal.auxiliary_functions as AF
 
 
 def ssnal_elastic_core(A, b,
