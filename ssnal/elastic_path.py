@@ -11,9 +11,10 @@ import time
 import numpy as np
 from tqdm import tqdm
 from numpy import linalg as LA
-from ssnal_elastic_core import ssnal_elastic_core
 from sklearn.model_selection import KFold
-from auxiliary_functions import plot_cv_ssnal_elstic
+
+from ssnal.auxiliary_functions import plot_cv_ssnal_elstic
+from ssnal import ssnal_elastic_core
 
 
 def ssnal_elastic_path(A, b,
@@ -27,7 +28,6 @@ def ssnal_elastic_path(A, b,
                        maxiter_ssn=50, maxiter_ssnal=100,
                        use_cg=True, r_exact=2e4,
                        plot=False, print_lev=2):
-
     """
     --------------------------------------------------------------------------
     ssnal algorithm to solve the elastic net for a list of lambda1 and lambda2
@@ -135,8 +135,11 @@ def ssnal_elastic_path(A, b,
     #    create output matrices    #
     # ---------------------------- #
 
-    aic_vec, ebic_vec, gcv_vec = - np.ones([n_lam1]), - np.ones([n_lam1]), - np.ones([n_lam1])
-    times_vec, r_vec, r_lm_vec, iter_vec = - np.ones([n_lam1]), - np.ones([n_lam1]), - np.ones([n_lam1]), - np.ones([n_lam1])
+    aic_vec, ebic_vec, gcv_vec = - \
+        np.ones([n_lam1]), - np.ones([n_lam1]), - np.ones([n_lam1])
+    times_vec, r_vec, r_lm_vec, iter_vec = - \
+        np.ones([n_lam1]), - np.ones([n_lam1]), - \
+        np.ones([n_lam1]), - np.ones([n_lam1])
 
     # ---------------------- #
     #    solve full model    #
@@ -158,7 +161,8 @@ def ssnal_elastic_path(A, b,
 
         if print_lev > 2:
             print('--------------------------------------------------------------------------------------------------')
-            print(' FULL MODEL:  lambda1 (ratio) = %.2e  (%.2e)  |  lambda2 = %.2e  |  sigma0 = %.2e' % (lam1, c_lam_vec[i], lam2, sgm))
+            print(' FULL MODEL:  lambda1 (ratio) = %.2e  (%.2e)  |  lambda2 = %.2e  |  sigma0 = %.2e' % (
+                lam1, c_lam_vec[i], lam2, sgm))
             print('--------------------------------------------------------------------------------------------------')
 
         # ------------------- #
@@ -216,7 +220,8 @@ def ssnal_elastic_path(A, b,
 
     if not convergence:
         print('--------------------------------------------------')
-        print(' snall has not converged for lam1 = %.4f, lam2 = %.4f ' % (lam1, lam2))
+        print(' snall has not converged for lam1 = %.4f, lam2 = %.4f ' %
+              (lam1, lam2))
         print('--------------------------------------------------')
 
     if reached_max:
@@ -289,7 +294,8 @@ def ssnal_elastic_path(A, b,
                 #    update cv mat    #
                 # ------------------- #
 
-                cv_mat[i_cv, fold] = LA.norm(np.dot(A_test, fit_cv[3]) - b_test) ** 2
+                cv_mat[i_cv, fold] = LA.norm(
+                    np.dot(A_test, fit_cv[3]) - b_test) ** 2
 
                 # ---------------------------- #
                 #    update starting values    #
@@ -299,7 +305,8 @@ def ssnal_elastic_path(A, b,
                     x0_cv, y0_cv, z0_cv, Aty0_cv, sgm_cv = None, None, None, None, sgm0
 
                 else:
-                    x0_cv, y0_cv, z0_Cv, Aty0_cv, sgm_cv = fit_cv[0], fit_cv[1], fit_cv[2], fit_cv[15], fit_cv[9]
+                    x0_cv, y0_cv, z0_Cv, Aty0_cv, sgm_cv = fit_cv[
+                        0], fit_cv[1], fit_cv[2], fit_cv[15], fit_cv[9]
 
             # ------------------------ #
             #    end loop for lam1    #
@@ -357,14 +364,15 @@ def ssnal_elastic_path(A, b,
         print('\n')
 
     if plot:
-        plot_cv_ssnal_elstic(r_lm_vec, ebic_vec, gcv_vec, cv_vec, alpha, c_lam_vec)
+        plot_cv_ssnal_elstic(r_lm_vec, ebic_vec, gcv_vec,
+                             cv_vec, alpha, c_lam_vec)
 
     return aic_vec[:n_lam1_stop], \
-           ebic_vec[:n_lam1_stop], \
-           gcv_vec[:n_lam1_stop], \
-           cv_vec, \
-           r_vec[:n_lam1_stop], \
-           r_lm_vec[:n_lam1_stop], \
-           iter_vec[:n_lam1_stop], \
-           times_vec[:n_lam1_stop], \
-           full_time, cv_time, total_time
+        ebic_vec[:n_lam1_stop], \
+        gcv_vec[:n_lam1_stop], \
+        cv_vec, \
+        r_vec[:n_lam1_stop], \
+        r_lm_vec[:n_lam1_stop], \
+        iter_vec[:n_lam1_stop], \
+        times_vec[:n_lam1_stop], \
+        full_time, cv_time, total_time

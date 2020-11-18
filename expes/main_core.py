@@ -5,11 +5,12 @@
 #                                                #
 # ---------------------------------------------- #
 
+import time
 import numpy as np
 from numpy import linalg as LA
-from ssnal_elastic_core import ssnal_elastic_core
-import time
 from scipy.linalg import eigh as largest_eigh
+
+from ssnal import ssnal_elastic_core
 
 
 if __name__ == '__main__':
@@ -113,9 +114,3 @@ if __name__ == '__main__':
                                   maxiter_ssn=maxiter_ssn, maxiter_ssnal=maxiter_ssnal,
                                   use_cg=use_cg, r_exact=r_exact,
                                   print_lev=print_lev)
-
-   
-
-
-
-

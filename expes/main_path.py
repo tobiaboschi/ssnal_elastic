@@ -8,10 +8,11 @@
 
 
 import numpy as np
-from ssnal_elastic_path import ssnal_elastic_path
 from numpy import linalg as LA
 import time
 from scipy.linalg import eigh as largest_eigh
+
+from ssnal import ssnal_elastic_path
 
 
 if __name__ == '__main__':
