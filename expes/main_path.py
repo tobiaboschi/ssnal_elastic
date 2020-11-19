@@ -1,23 +1,14 @@
-
-# ---------------------------------------------- #
-#                                                #
-#    Run ssnal_elastic_tune on synthetic data    #
-#                                                #
-# ---------------------------------------------- #
-
+"""Compute ElasticNet path with SSNAL algorithm."""
 
 
 import numpy as np
 from numpy import linalg as LA
-import time
 from scipy.linalg import eigh as largest_eigh
 
 from ssnal import ssnal_elastic_path
 
 
 if __name__ == '__main__':
-
-    # seed = np.random.randint(0, 1e5)
     seed = 54
     np.random.seed(seed)
 
@@ -25,14 +16,8 @@ if __name__ == '__main__':
     #  set simulation parameters  #
     # --------------------------- #
 
-    # observations
-    m = 500
-
-    # features
-    n = 10000
-
-    # sparsity
-    non_zeros = 10
+    # observations, features, sparsity
+    m, n, non_zeros = 500, 10_000, 10
 
     # x true
     xstar = 5
@@ -42,11 +27,10 @@ if __name__ == '__main__':
 
     # --------------------- #
     #  set ssnal_parameter  #
-    # --------------------- #
+    # --------------------- ##
 
     # set a vector with lam1_max percentages to consider
-    # c_lam_vec = np.linspace(start=1, stop=0.1, num=40)
-    c_lam_vec = np.logspace(start=3, stop=2, num=100) / 1000
+    c_lam_vec = np.geomspace(1, 0.1, num=100)
 
     # alpha
     alpha = 0.6
@@ -93,7 +77,6 @@ if __name__ == '__main__':
     print('')
     print('  * generating A')
     A = np.random.normal(0, 1, (m, n))
-    # print('  * max_lam(AAt) / n = %.4e' % (largest_eigh(np.dot(A, A.transpose()), eigvals=(m - 1, m - 1))[0][0] / n))
     print('')
 
     # compute true coefficients
@@ -106,28 +89,20 @@ if __name__ == '__main__':
 
     # compute the response
     b = np.dot(A, x_true).reshape(m, ) + err
-    b += - np.mean(b)
-
-    # # find lam_max
-    # lam1_max = LA.norm(np.dot(A.transpose(), b), np.inf) / alpha
+    b -= np.mean(b)
 
     # -------------------- #
     #  ssnal elastic path  #
     # -------------------- #
 
-    out_path = ssnal_elastic_path(A=A, b=b,
-                                  c_lam_vec=c_lam_vec, alpha=alpha,
-                                  max_selected=max_selected,
-                                  cv=cv, n_folds=n_folds,
-                                  x0=None, y0=None, z0=None, Aty0=None,
-                                  sgm=sgm, sgm_increase=sgm_increase, sgm_change=sgm_change,
-                                  step_reduce=step_reduce, mu=mu,
-                                  tol_ssn=tol_ssn, tol_ssnal=tol_ssnal,
-                                  maxiter_ssn=maxiter_ssn, maxiter_ssnal=maxiter_ssnal,
-                                  use_cg=use_cg, r_exact=r_exact,
-                                  plot=plot, print_lev=print_lev)
+    out_path = ssnal_elastic_path(
+        A=A, b=b, c_lam_vec=c_lam_vec, alpha=alpha, max_selected=max_selected,
+        cv=cv, n_folds=n_folds, x0=None, y0=None, z0=None, Aty0=None,
+        sgm=sgm, sgm_increase=sgm_increase, sgm_change=sgm_change,
+        step_reduce=step_reduce, mu=mu, tol_ssn=tol_ssn, tol_ssnal=tol_ssnal,
+        maxiter_ssn=maxiter_ssn, maxiter_ssnal=maxiter_ssnal,
+        use_cg=use_cg, r_exact=r_exact, plot=plot, print_lev=print_lev)
 
-    
     # ------------------------------------ #
     #  if I want to test different alphas  #
     # ------------------------------------ #
@@ -159,6 +134,3 @@ if __name__ == '__main__':
     #
     # import auxiliary_functions as AF
     # AF.plot_cv_ssnal_elstic(r_lm_list, ebic_list, gcv_list, cv_vec_list, alpha_vec, c_lam_vec)
-
-
-    

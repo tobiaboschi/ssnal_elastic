@@ -1,19 +1,13 @@
-
-# ------------------- #
-#                     #
-#    Realdata Main    #
-#                     #
-# ------------------- #
+"""Run solver on real data"""
 
 
 import numpy as np
-import time
 from sklearn.preprocessing import PolynomialFeatures
 from scipy.linalg import eigh as largest_eigh
 from numpy import linalg as LA
 
 
-from ssnal import ssnal_elastic_path, ssnal_elastic_core
+from ssnal import ssnal_elastic_core
 
 if __name__ == '__main__':
 
@@ -84,18 +78,18 @@ if __name__ == '__main__':
     poly = PolynomialFeatures(poly_degree)
     A = poly.fit_transform(A)[:, 1:]
     A = (A - A.mean(axis=0)) / A.std(axis=0)
-    b = b - b.mean(axis=0)
+    b -= b.mean(axis=0)
     m, n = A.shape
 
     print('')
     print('  * dim A =', A.shape)
     print('  * max_lam(AAt) = %.4e' %
-          largest_eigh(np.dot(A, A.transpose()), eigvals=(m - 1, m - 1))[0][0])
+          largest_eigh(np.dot(A, A.T), eigvals=(m - 1, m - 1))[0][0])
+    # TODO MM use np.linalg.norm(A, ord=2) ** 2?
     print('')
 
     # find lam1_max, and determine lam1 and lam2
-    Atb = np.dot(A.transpose(), b)
-    lam1_max = LA.norm(Atb, np.inf) / alpha
+    lam1_max = LA.norm(A.T @ b, ord=np.inf) / alpha
     lam1 = alpha * c_lam * lam1_max
     lam2 = (1 - alpha) * c_lam * lam1_max
 
@@ -105,12 +99,9 @@ if __name__ == '__main__':
 
     print('')
     print('  * start ssnal_elastic')
-    out_core = ssnal_elastic_core(A=A, b=b,
-                                  lam1=lam1, lam2=lam2,
-                                  x0=None, y0=None, z0=None, Aty0=None,
-                                  sgm=sgm, sgm_increase=sgm_increase, sgm_change=sgm_change,
-                                  step_reduce=step_reduce, mu=mu,
-                                  tol_ssn=tol_ssn, tol_ssnal=tol_ssnal,
-                                  maxiter_ssn=maxiter_ssn, maxiter_ssnal=maxiter_ssnal,
-                                  use_cg=use_cg, r_exact=r_exact,
-                                  print_lev=print_lev)
+    out_core = ssnal_elastic_core(
+        A=A, b=b, lam1=lam1, lam2=lam2, x0=None, y0=None, z0=None, Aty0=None,
+        sgm=sgm, sgm_increase=sgm_increase, sgm_change=sgm_change,
+        step_reduce=step_reduce, mu=mu, tol_ssn=tol_ssn, tol_ssnal=tol_ssnal,
+        maxiter_ssn=maxiter_ssn, maxiter_ssnal=maxiter_ssnal,
+        use_cg=use_cg, r_exact=r_exact, print_lev=print_lev)
