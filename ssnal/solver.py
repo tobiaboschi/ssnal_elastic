@@ -16,22 +16,17 @@ from sklearn.linear_model import LinearRegression
 import ssnal.auxiliary_functions as AF
 
 
-def ssnal_elastic_core(A, b,
-                       lam1, lam2,
-                       x0=None, y0=None, z0=None, Aty0=None,
-                       sgm=5e-3, sgm_increase=5, sgm_change=3,
-                       step_reduce=0.5, mu=0.2,
-                       tol_ssn=1e-6, tol_ssnal=1e-6,
-                       maxiter_ssn=50, maxiter_ssnal=100,
-                       use_cg=False, r_exact=2e4,
-                       print_lev=1):
-
+def ssnal_elastic_core(
+        A, b, lam1, lam2, x0=None, y0=None, z0=None, Aty0=None, sgm=5e-3,
+        sgm_increase=5, sgm_change=3, step_reduce=0.5, mu=0.2,
+        tol_ssn=1e-6, tol_ssnal=1e-6, maxiter_ssn=50, maxiter_ssnal=100,
+        use_cg=False, r_exact=2e4, print_lev=1):
     """
     --------------------------------------------------------------------------------
     ssnal algorithm to solve the elastic net for fixed values of lambda1 and lambda2
     --------------------------------------------------------------------------------
 
-    ----------------------------------------------------------------------------------------------------------------------
+    ---------------------------------------------------------------------------
     :param A: design matrix (m x n)
     :param b: response vector (m, )
     :param lam1: lasso penalization
@@ -39,7 +34,7 @@ def ssnal_elastic_core(A, b,
     :param x0: initial value for the lagrangian multiplier (variable of the primal problem) (n, ) -- vector 0 if not given
     :param y0: initial value fot the first variable of the dual problem  (m, ) -- vector of 0 if not given
     :param z0: initial value for the second variable of the dual problem (n, ) -- vector of 0 if not given
-    :param Aty0: np.dot(A.transpose(), y0) (n,)
+    :param Aty0: np.dot(A.T, y0) (n,)
     :param sgm: starting value of the augmented lagrangian parameter sigma
     :param sgm_increase: increasing factor of sigma
     :param sgm_change: we increase sgm -- sgm *= sgm_increase -- every sgm_change iterations
@@ -52,9 +47,9 @@ def ssnal_elastic_core(A, b,
     :param use_cg: True/False. If true, the conjugate gradient method is used to find the direction of the ssn
     :param r_exact: number of features such that we start using the exact method
     :param print_lev: different level of printing (0, 1, 2)
-    ----------------------------------------------------------------------------------------------------------------------
+    ---------------------------------------------------------------------------
 
-    --------------------------------------------------------------------------------------------------
+    ---------------------------------------------------------------------------
     :return[0] x: optimal value of the primal variable
     :return[1] y: optimal value of the first dual variable
     :return[2] z: optimal value of the second dual variable
@@ -70,8 +65,8 @@ def ssnal_elastic_core(A, b,
     :return[12] convergence_ssnal: True/False. If true, the ssnal has converged
     :return[13] ssnal_time: total time of ssnal
     :return[14] it_ssnal: total ssnal's iteration
-    :return[15] Aty: np.dot(A.transpose(), y) computed at the optimal y. Useful to implement warmstart
-    --------------------------------------------------------------------------------------------------
+    :return[15] Aty: np.dot(A.T, y) computed at the optimal y. Useful to implement warmstart
+    --------------------------------------------------------------------------
 
     """
 
@@ -93,7 +88,7 @@ def ssnal_elastic_core(A, b,
     if z is None:
         z = np.zeros((n,))
     if Aty0 is None:
-        Aty = np.dot(A.transpose(), y)
+        Aty = A.T @ y
 
     convergence_ssnal = False
 
@@ -107,8 +102,9 @@ def ssnal_elastic_core(A, b,
 
         if print_lev > 1:
             print('')
-            print('  ssnal iteration = %.f  |  sgm = %.2e' % (it_ssnal + 1, sgm))
-            print('  -------------------------------------------------------------------')
+            print('  ssnal iteration = %.f  |  sgm = %.2e' %
+                  (it_ssnal + 1, sgm))
+            print('-' * 80)
 
         # --------------- #
         #    start ssn    #
@@ -128,7 +124,7 @@ def ssnal_elastic_core(A, b,
             indx = (np.absolute(x_tilde) > sgm * lam1).reshape(n)
             xJ = x[indx]
             AJ = A[:, indx]
-            AJty = np.dot(AJ.transpose(), y)
+            AJty = AJ.T @ y
 
             m, r = AJ.shape
 
@@ -155,12 +151,14 @@ def ssnal_elastic_core(A, b,
                     method = 'CG'
                     if m >= r:
                         # special case, SMW formula
-                        rhs_temp = np.dot(AJ.transpose(), rhs)
-                        A_star = 1 / (sgm * correction) * np.eye(r) + np.dot(AJ.transpose(), AJ)
-                        d_temp = s_LA.cg(A_star, rhs_temp, tol=1e-04, maxiter=1000)[0]
+                        rhs_temp = AJ.T @ rhs
+                        A_star = 1 / (sgm * correction) * \
+                            np.eye(r) + AJ.T @ AJ
+                        d_temp = s_LA.cg(A_star, rhs_temp,
+                                         tol=1e-04, maxiter=1000)[0]
                         d = rhs - np.dot(AJ, d_temp)
                     else:
-                        A_star = np.eye(m) + sgm * correction * np.dot(AJ, AJ.transpose())
+                        A_star = np.eye(m) + sgm * correction * AJ @ AJ.T
                         d = s_LA.cg(A_star, rhs, tol=1e-04, maxiter=1000)[0]
 
                 # ---------------- #
@@ -172,7 +170,7 @@ def ssnal_elastic_core(A, b,
                     LJ, LJt = AF.factorization(AJ, sgm * correction)
                     if m >= r:
                         # special case, SMW formula
-                        d_temp = LA.solve(LJt, LA.solve(LJ, np.dot(AJ.transpose(), rhs)))
+                        d_temp = LA.solve(LJt, LA.solve(LJ, AJ.T @ rhs))
                         d = rhs - np.dot(AJ, d_temp)
 
                         # d_temp = LA.solve(np.eye(r) / (sgm * correction) + np.dot(AJ.T, AJ), np.dot(AJ.T, rhs))
@@ -180,7 +178,7 @@ def ssnal_elastic_core(A, b,
                     else:
                         d = LA.solve(LJt, LA.solve(LJ, rhs))
 
-                        # A_star = np.eye(m) + sgm * correction * np.dot(AJ, AJ.transpose())
+                        # A_star = np.eye(m) + sgm * correction * AJ @ AJ.T
                         # d = LA.solve(A_star, rhs)
 
             # ------------------------------ #
@@ -190,12 +188,12 @@ def ssnal_elastic_core(A, b,
             step_size = 1
 
             rhs_term_1 = AF.phi_y_elst(y, xJ, b, AJty, sgm, lam1, lam2)
-            rhs_term_2 = np.dot(-rhs.transpose(), d)
+            rhs_term_2 = -rhs.T @ d
             # rhs_term_1 = phi_y_elst(y, x, b, Aty, sgm, lam1, lam2)
 
             while True:
                 y_new = y + step_size * d
-                Aty_new = np.dot(A.transpose(), y_new)
+                Aty_new = A.T @ y_new
                 if AF.phi_y_elst(y_new, x, b, Aty_new, sgm, lam1, lam2) <= rhs_term_1 + mu * step_size * rhs_term_2:
                     break
                 step_size *= step_reduce
@@ -216,7 +214,8 @@ def ssnal_elastic_core(A, b,
             # --------------------------- #
 
             if r > 0:
-                kkt1 = LA.norm(np.dot(AJ, x_temp[indx]) - b - y) / (1 + LA.norm(b))
+                kkt1 = LA.norm(
+                    np.dot(AJ, x_temp[indx]) - b - y) / (1 + LA.norm(b))
             else:
                 kkt1 = LA.norm(np.dot(A, x_temp) - b - y) / (1 + LA.norm(b))
 
@@ -225,7 +224,8 @@ def ssnal_elastic_core(A, b,
                     space = ''
                 else:
                     space = ' '
-                print(space, '  %.f| ' % (it_ssn + 1),  method, ' kkt1 = %.2e  -  step_size = %.1e  -  r = %.f' % (kkt1, step_size, r), sep='')
+                print(space, '  %.f| ' % (it_ssn + 1),  method,
+                      ' kkt1 = %.2e  -  step_size = %.1e  -  r = %.f' % (kkt1, step_size, r), sep='')
 
             if kkt1 < tol_ssn or r == 0:
                 convergence_ssn = True
@@ -308,8 +308,8 @@ def ssnal_elastic_core(A, b,
         res = b - np.dot(A_lm, x_lm_temp)
 
         # compute dof
-        df_core = LA.inv(np.dot(A_lm.transpose(), A_lm) + lam2 * np.eye(r_lm))
-        df = np.trace(np.dot(np.dot(A_lm, df_core), A_lm.transpose()))
+        df_core = LA.inv(A_lm.T @ A_lm + lam2 * np.eye(r_lm))
+        df = np.trace(np.dot(np.dot(A_lm, df_core), A_lm.T))
 
         # compute rss
         rss = LA.norm(res) ** 2
@@ -319,7 +319,7 @@ def ssnal_elastic_core(A, b,
         gcv = rss / m / (1 - df / m) ** 2
 
         # create final debiased solution of lenght n
-        x_lm = np.zeros(n, )
+        x_lm = np.zeros(n)
         indx[indx] = lm_indx
         x_lm[indx] = x_lm_temp
 
@@ -361,5 +361,5 @@ def ssnal_elastic_core(A, b,
             print('     (try to increase the number of iterations)')
             print('\n')
 
-    return x, y, z, x_lm, r, r_lm, aic, ebic, gcv, sgm, lam1, lam2, convergence_ssnal, ssnal_time, it_ssnal, Aty
-
+    return (x, y, z, x_lm, r, r_lm, aic, ebic, gcv, sgm, lam1, lam2,
+            convergence_ssnal, ssnal_time, it_ssnal, Aty)

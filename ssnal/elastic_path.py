@@ -42,7 +42,7 @@ def ssnal_elastic_path(A, b,
     :param x0: initial value for the lagrangian multiplier (variable of the primal problem) (n, ) -- vector 0 if not given
     :param y0: initial value fot the first variable of the dual problem  (m, ) -- vector of 0 if not given
     :param z0: initial value for the second variable of the dual problem (n, ) -- vector of 0 if not given
-    :param Aty0: np.dot(A.transpose(), y0) (n,)
+    :param Aty0: np.dot(A.T, y0) (n,)
     :param max_selected: maximum number of features selected
     :param cv: True/False. I true, a cross validation is performed
     :param n_folds: number of folds to perform the cross validation
@@ -92,7 +92,7 @@ def ssnal_elastic_path(A, b,
     :return[12] convergence_ssnal: True/False. If true, the ssnal has converged
     :return[13] ssnal_time: total time of ssnal
     :return[14] it_ssnal: total ssnal's iteration
-    :return[15] Aty: np.dot(A.transpose(), y) computed at the optimal y. Useful to implement warmstart
+    :return[15] Aty: np.dot(A.T, y) computed at the optimal y. Useful to implement warmstart
     --------------------------------------------------------------------------------------------------
 
     """
@@ -103,20 +103,20 @@ def ssnal_elastic_path(A, b,
 
     m, n = A.shape
 
-    lam1_max = LA.norm(np.dot(A.transpose(), b), np.inf) / alpha
+    lam1_max = LA.norm(A.T @ b, ord=np.inf) / alpha
 
     if x0 is None:
-        x0 = np.zeros((n,))
+        x0 = np.zeros(n)
     if y0 is None:
-        y0 = np.zeros((m,))
+        y0 = np.zeros(m)
     if z0 is None:
-        z0 = np.zeros((n,))
+        z0 = np.zeros(n)
 
     if max_selected is None:
         max_selected = n
 
     if c_lam_vec is None:
-        c_lam_vec = np.logspace(start=3, stop=1, num=100, base=10.0)/1000
+        c_lam_vec = np.geomspace(1, 0.01, num=100)
 
     n_lam1 = c_lam_vec.shape[0]
 
@@ -169,14 +169,13 @@ def ssnal_elastic_path(A, b,
         #    perform ssnal    #
         # ------------------- #
 
-        fit = ssnal_elastic_core(A=A, b=b, lam1=lam1, lam2=lam2,
-                                 x0=x0, y0=y0, z0=z0, Aty0=Aty0,
-                                 sgm=sgm, sgm_increase=sgm_increase, sgm_change=sgm_change,
-                                 step_reduce=step_reduce, mu=mu,
-                                 tol_ssn=tol_ssn, tol_ssnal=tol_ssnal,
-                                 maxiter_ssn=maxiter_ssn, maxiter_ssnal=maxiter_ssnal,
-                                 use_cg=use_cg, r_exact=r_exact,
-                                 print_lev=print_lev - 3)
+        fit = ssnal_elastic_core(
+            A=A, b=b, lam1=lam1, lam2=lam2, x0=x0, y0=y0, z0=z0, Aty0=Aty0,
+            sgm=sgm, sgm_increase=sgm_increase, sgm_change=sgm_change,
+            step_reduce=step_reduce, mu=mu, tol_ssn=tol_ssn,
+            tol_ssnal=tol_ssnal, maxiter_ssn=maxiter_ssn,
+            maxiter_ssnal=maxiter_ssnal, use_cg=use_cg, r_exact=r_exact,
+            print_lev=print_lev - 3)
 
         # ----------------------- #
         #    check convergence    #
@@ -281,14 +280,14 @@ def ssnal_elastic_path(A, b,
                 #    perform ssnal    #
                 # ------------------- #
 
-                fit_cv = ssnal_elastic_core(A=A_train, b=b_train, lam1=lam1, lam2=lam2,
-                                            x0=x0_cv, y0=y0_cv, z0=z0_cv, Aty0=Aty0_cv,
-                                            sgm=sgm_cv, sgm_increase=sgm_increase, sgm_change=sgm_change,
-                                            step_reduce=step_reduce, mu=mu,
-                                            tol_ssn=tol_ssn, tol_ssnal=tol_ssnal,
-                                            maxiter_ssn=maxiter_ssn, maxiter_ssnal=maxiter_ssnal,
-                                            use_cg=use_cg, r_exact=r_exact,
-                                            print_lev=0)
+                fit_cv = ssnal_elastic_core(
+                    A=A_train, b=b_train, lam1=lam1, lam2=lam2, x0=x0_cv,
+                    y0=y0_cv, z0=z0_cv, Aty0=Aty0_cv, sgm=sgm_cv,
+                    sgm_increase=sgm_increase, sgm_change=sgm_change,
+                    step_reduce=step_reduce, mu=mu, tol_ssn=tol_ssn,
+                    tol_ssnal=tol_ssnal, maxiter_ssn=maxiter_ssn,
+                    maxiter_ssnal=maxiter_ssnal, use_cg=use_cg,
+                    r_exact=r_exact, print_lev=0)
 
                 # ------------------- #
                 #    update cv mat    #
