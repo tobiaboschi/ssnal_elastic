@@ -86,6 +86,7 @@ if __name__ == '__main__':
     print('  * max_lam(AAt) = %.4e' %
           largest_eigh(np.dot(A, A.T), eigvals=(m - 1, m - 1))[0][0])
     # TODO MM use np.linalg.norm(A, ord=2) ** 2?
+    # TODO TB largest_eigh is more efficient. With a 1000x1000 matrix it took 0.3 sec while np.linalg.norm took 1.7sec
     print('')
 
     # find lam1_max, and determine lam1 and lam2

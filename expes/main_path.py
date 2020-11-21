@@ -84,7 +84,7 @@ if __name__ == '__main__':
     x_true[0:non_zeros] = xstar
 
     # compute err variance and error
-    err_sd = np.sqrt(np.var(np.dot(A, x_true)) / snr)
+    err_sd = np.std(A @ x_true) / np.sqrt(snr)
     err = err_sd * np.random.normal(0, 1, (m, ))
 
     # compute the response

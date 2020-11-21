@@ -17,8 +17,9 @@ if __name__ == '__main__':
     # --------------------------- #
 
     # observations, features, sparsity
-    m, n, non_zeros = 500, 10000, 100
+    m, n, non_zeros = 500, 1000, 10
     # MM TODO: we could use n_samples, n_features instead of m and n
+    # TB: TODO: it is ok with me
 
     # x true
     xstar = 5
@@ -34,7 +35,8 @@ if __name__ == '__main__':
     c_lam = 0.7
 
     # set alpha
-    # MM TODO: maybe l1_ratio is a more explicit name ?
+    # TODO MM: maybe l1_ratio is a more explicit name ?
+    # TODO TB: I prefer to leave it is consistent with the paper notation
     alpha = 0.9
 
     # to choose between cg and exact method
@@ -74,13 +76,14 @@ if __name__ == '__main__':
 
     # compute err variance and error
     # TODO: MM: can we use np.std here ?
-    err_sd = np.sqrt(np.var(np.dot(A, x_true)) / snr)
+    # TODO: TB: YES
+    err_sd = np.std(A @ x_true) / np.sqrt(snr)
     err = err_sd * np.random.normal(0, 1, (m, ))
 
     # compute the response
     b = np.dot(A, x_true).reshape(m, ) + err
     # b = np.dot(A, x_true).reshape(m, )
-    b += - np.mean(b)
+    b -= np.mean(b)
 
     # find lam1_max, and determine lam1 and lam2
     Atb = A.T @ b
@@ -100,3 +103,4 @@ if __name__ == '__main__':
         step_reduce=step_reduce, mu=mu, tol_ssn=tol_ssn, tol_ssnal=tol_ssnal,
         maxiter_ssn=maxiter_ssn, maxiter_ssnal=maxiter_ssnal,
         use_cg=use_cg, r_exact=r_exact, print_lev=print_lev)
+
