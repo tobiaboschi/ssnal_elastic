@@ -1,6 +1,6 @@
 # ssnal_elastic
 
-This repository contains an efficient python implementation of a SsssNAL method to solve the elastic net problem -- see https://arxiv.org/abs/2006.03970
+This repository contains an efficient python implementation of a SsNAL method to solve the elastic net problem -- see https://arxiv.org/abs/2006.03970
 
 
 
